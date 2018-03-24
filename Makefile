@@ -6,4 +6,4 @@ clean:
 	rm main
 
 run:
-	./main
+	./main 2 data

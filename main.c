@@ -36,6 +36,7 @@
 #define N 50
 
 void eraseString(char *string, int size);
+char *Malloc(char *str);
 
 int main(int argc, char **argv) {
     fprintf(stdout, "> Start\n");
@@ -90,48 +91,50 @@ int main(int argc, char **argv) {
 
     // while a new file exists
     while (fgets(line, N, fp) != NULL) {
-        fprintf(stdout, "> File: %s\n", line);
+        // terminate read string line
+        line[strlen(line)-1] = '\0';
 
-        // if I have more than max tthread running
+        fprintf(stdout, "\n> File: %s\n", line);
+
+        eraseString(temp, 50);
+
+        sprintf(temp, "./%s/%s", dirname, line);
+
+        fprintf(stdout, "%s", temp);
+
+        // if I have more than max thread running
         if (numChild >= C) {
             // wait for a child termination
             wait(&status);
             numChild--;
 
             if (status != 0) {
-                fprintf(stdout, "Error, child error\n");
+                fprintf(stdout, "Error, child error 1\n");
                 exit(-4);
             }
         }
 
-        int pid = fork();
-
-        switch (pid) {
+        switch (fork()) {
             case 0:
                 // child
 
                 eraseString(temp, 50);
 
-                // terminate read string line
-                line[strlen(line)-1] = '\0';
-
                 sprintf(temp, "./%s/%s", dirname, line);
 
-                char name[20];
-                sprintf(name, "mySort(%i)", getpid());
+                fprintf(stdout, "\n > Child(%d): %s\n", getpid(), temp);
 
-                fprintf(stdout, "%s", temp);
+                char *arr[] = {"mySort", "-n", "-o", temp, temp, (char *)0};
 
-                int res = execlp("sort", name, "-n", "-o", temp, temp, (char *)NULL);
-
-                if (res < 0) {
-                    fprintf(stdout, "Error, exec error\n");
+                if (execv("/usr/bin/sort", arr) < 0) {
+                    fprintf(stdout, "Error, execv error\n");
                     exit(-6);
                 }
                 break;
 
             case -1:
                 // error
+
                 fprintf(stdout, "Error, fork error\n");
                 exit(-5);
 
@@ -149,7 +152,7 @@ int main(int argc, char **argv) {
         numChild--;
 
         if (status != 0) {
-            fprintf(stdout, "Error, child error\n");
+            fprintf(stdout, "Error, child error 2\n");
             exit(-4);
         }
     }
